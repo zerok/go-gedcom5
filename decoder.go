@@ -3,24 +3,22 @@ package gedcom5
 import "io"
 
 type Decoder struct {
-	p *LineParser
+	p *FileParser
 }
 
 func NewDecoder(in io.Reader) *Decoder {
-	return &Decoder{p: NewLineParser(in)}
+	s := NewScanner(in)
+	return &Decoder{p: NewFileParser(s)}
 }
 
 func (ld *Decoder) Decode(out *File) error {
-	out.Lines = make([]Line, 0, 10)
-	for {
-		l, err := ld.p.ParseLine()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
-		}
-		out.Lines = append(out.Lines, *l)
+	f, err := ld.p.ParseFile()
+	if err != nil {
+		return err
 	}
+	out.Lines = f.Lines
+	out.Header = f.Header
+	out.Records = f.Records
+	out.Trailer = f.Trailer
 	return nil
 }

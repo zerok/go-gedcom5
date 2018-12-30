@@ -5,12 +5,36 @@ import (
 	"io"
 )
 
+type FileParser struct {
+	lp *LineParser
+}
+
+func NewFileParser(s *Scanner) *FileParser {
+	return &FileParser{
+		lp: NewLineParser(s),
+	}
+}
+
+func (fp *FileParser) ParseFile() (*File, error) {
+	f := File{
+		Lines: make([]Line, 0, 10),
+	}
+	for {
+		l, err := fp.lp.ParseLine()
+		if err == io.EOF {
+			break
+		}
+		f.Lines = append(f.Lines, *l)
+	}
+	return &f, nil
+}
+
 type LineParser struct {
 	s *Scanner
 }
 
-func NewLineParser(in io.Reader) *LineParser {
-	return &LineParser{s: NewScanner(in)}
+func NewLineParser(s *Scanner) *LineParser {
+	return &LineParser{s: s}
 }
 
 // ParseLine tries to parse a single line from the underlying input.
