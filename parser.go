@@ -16,17 +16,47 @@ func NewFileParser(s *Scanner) *FileParser {
 }
 
 func (fp *FileParser) ParseFile() (*File, error) {
-	f := File{
-		Lines: make([]Line, 0, 10),
-	}
+	f := NewFile()
+	var inTrailer bool
+	var inHeader bool
+	var currTLR Record
 	for {
 		l, err := fp.lp.ParseLine()
 		if err == io.EOF {
 			break
 		}
 		f.Lines = append(f.Lines, *l)
+
+		if l.Level == 0 {
+			switch l.Tag {
+			case "TRLR":
+				if currTLR != nil {
+					f.Records = append(f.Records, currTLR)
+				}
+				currTLR = nil
+				inHeader = false
+				inTrailer = true
+			case "HEAD":
+				inHeader = true
+				inTrailer = false
+			default:
+				if currTLR != nil {
+					f.Records = append(f.Records, currTLR)
+				}
+				currTLR = NewRecord(l.Tag)
+				inHeader = false
+				inTrailer = false
+			}
+		}
+		if inTrailer {
+			f.Trailer.Lines = append(f.Trailer.Lines, *l)
+		} else if inHeader {
+			f.Header.Lines = append(f.Header.Lines, *l)
+		} else if currTLR != nil {
+			currTLR.AddLine(*l)
+		}
 	}
-	return &f, nil
+	return f, nil
 }
 
 type LineParser struct {

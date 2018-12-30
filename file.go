@@ -1,15 +1,24 @@
-//go:generate goyacc -p "line" -o "xx_line.go" gedcom5.y
 package gedcom5
 
-type Header struct{}
+type Header struct {
+	Lines []Line
+}
 
-type Trailer struct{}
-
-type Record interface{}
+type Trailer struct {
+	Lines []Line
+}
 
 type File struct {
 	Lines   []Line
 	Header  Header
 	Records []Record
 	Trailer Trailer
+}
+
+func NewFile() *File {
+	f := File{
+		Lines:   make([]Line, 0, 10),
+		Records: make([]Record, 0, 10),
+	}
+	return &f
 }
