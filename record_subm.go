@@ -1,6 +1,11 @@
+//go:generate python3 generators/leveled.py --structs SubmitterRecord --package gedcom5 --outfile record_subm_gen_leveled.go
+//go:generate python3 generators/line_based.py --structs SubmitterRecord --package gedcom5 --outfile record_subm_gen_linebased.go
 package gedcom5
 
+import "context"
+
 type SubmitterRecord struct {
+	lvl   int
 	lines []Line
 }
 
@@ -10,10 +15,6 @@ func NewSubmitterRecord() Record {
 	}
 }
 
-func (r *SubmitterRecord) AddLine(l Line) {
-	r.lines = append(r.lines, l)
-}
-
-func (r *SubmitterRecord) Lines() []Line {
-	return []Line{}
+func (r *SubmitterRecord) Decode(ctx context.Context) error {
+	return nil
 }

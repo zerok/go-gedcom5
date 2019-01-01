@@ -9,9 +9,14 @@ test:
 bin:
 	mkdir -p bin
 
+generated:
+	rm -f *_gen_*.go
+	go generate ./...
+
 clean:
 	rm -rf bin
 
 .PHONY: test
 .PHONY: all
 .PHONY: clean
+.PHONY: generated

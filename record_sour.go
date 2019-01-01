@@ -1,6 +1,11 @@
+//go:generate python3 generators/leveled.py --structs SourceRecord --package gedcom5 --outfile record_sour_gen_leveled.go
+//go:generate python3 generators/line_based.py --structs SourceRecord --package gedcom5 --outfile record_sour_gen_linebased.go
 package gedcom5
 
+import "context"
+
 type SourceRecord struct {
+	lvl   int
 	lines []Line
 }
 
@@ -10,10 +15,6 @@ func NewSourceRecord() Record {
 	}
 }
 
-func (r *SourceRecord) AddLine(l Line) {
-	r.lines = append(r.lines, l)
-}
-
-func (r *SourceRecord) Lines() []Line {
-	return []Line{}
+func (r *SourceRecord) Decode(ctx context.Context) error {
+	return nil
 }

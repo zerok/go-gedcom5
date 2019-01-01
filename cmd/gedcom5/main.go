@@ -31,7 +31,7 @@ func main() {
 		}
 		fmt.Printf("Lines decoded: %d\n", len(file.Lines))
 		fmt.Printf("Top-level records: %d\n", len(file.Records))
-		var indis int
+		indis := make([]*gedcom5.IndividualRecord, 0, 10)
 		var families int
 		var multimedias int
 		var notes int
@@ -42,7 +42,7 @@ func main() {
 		for _, rec := range file.Records {
 			switch rec.(type) {
 			case *gedcom5.IndividualRecord:
-				indis++
+				indis = append(indis, rec.(*gedcom5.IndividualRecord))
 			case *gedcom5.FamilyRecord:
 				families++
 			case *gedcom5.MultimediaRecord:
@@ -59,7 +59,10 @@ func main() {
 				unknowns++
 			}
 		}
-		fmt.Printf(" - Individuals: %d\n", indis)
+		fmt.Printf(" - Individuals: %d\n", len(indis))
+		for _, indi := range indis {
+			printIndividual(indi)
+		}
 		fmt.Printf(" - Families: %d\n", families)
 		fmt.Printf(" - Multimedia items: %d\n", multimedias)
 		fmt.Printf(" - Notes: %d\n", notes)
@@ -67,5 +70,22 @@ func main() {
 		fmt.Printf(" - Sources: %d\n", sources)
 		fmt.Printf(" - Submitters: %d\n", submitters)
 		fmt.Printf(" - Unknown records: %d\n", unknowns)
+	}
+}
+
+func printIndividual(indi *gedcom5.IndividualRecord) {
+	pfx := "        "
+	fmt.Printf("    - %s\n", indi.String())
+	if indi.Sex != "" {
+		fmt.Printf("%sSex: %s\n", pfx, indi.Sex)
+	}
+	if indi.Occupation != "" {
+		fmt.Printf("%sOccupation: %s\n", pfx, indi.Occupation)
+	}
+	if indi.Religion != "" {
+		fmt.Printf("%sReligion: %s\n", pfx, indi.Religion)
+	}
+	if indi.Birth.Date != "" {
+		fmt.Printf("%sBirthdate: %s\n", pfx, indi.Birth.Date)
 	}
 }

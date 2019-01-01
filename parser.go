@@ -2,7 +2,10 @@ package gedcom5
 
 import (
 	"bytes"
+	"context"
 	"io"
+
+	"github.com/pkg/errors"
 )
 
 type FileParser struct {
@@ -15,7 +18,7 @@ func NewFileParser(s *Scanner) *FileParser {
 	}
 }
 
-func (fp *FileParser) ParseFile() (*File, error) {
+func (fp *FileParser) ParseFile(ctx context.Context) (*File, error) {
 	f := NewFile()
 	var inTrailer bool
 	var inHeader bool
@@ -31,6 +34,9 @@ func (fp *FileParser) ParseFile() (*File, error) {
 			switch l.Tag {
 			case "TRLR":
 				if currTLR != nil {
+					if err := currTLR.Decode(ctx); err != nil {
+						return nil, errors.Wrap(err, "failed to decode record")
+					}
 					f.Records = append(f.Records, currTLR)
 				}
 				currTLR = nil
@@ -41,9 +47,15 @@ func (fp *FileParser) ParseFile() (*File, error) {
 				inTrailer = false
 			default:
 				if currTLR != nil {
+					if err := currTLR.Decode(ctx); err != nil {
+						return nil, errors.Wrap(err, "failed to decode record")
+					}
 					f.Records = append(f.Records, currTLR)
 				}
 				currTLR = NewRecord(l.Tag)
+				if lvld, ok := currTLR.(Leveled); ok {
+					lvld.SetLevel(l.Level)
+				}
 				inHeader = false
 				inTrailer = false
 			}
