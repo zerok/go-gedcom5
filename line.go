@@ -36,14 +36,17 @@ func (l *Line) String() string {
 	return out.String()
 }
 
+// LineDecoder handles reflection-based decoding of multiple gedcom5 Lines into
+// a single struct.
 type LineDecoder struct {
-	baseLevel           int
-	val                 interface{}
-	tagToField          map[string]string
-	tagToType           map[string]reflect.Type
-	tagValue            string
-	previousStructField string
-	pendingLines        []Line
+	baseLevel              int
+	val                    interface{}
+	tagToField             map[string]string
+	tagToType              map[string]reflect.Type
+	tagValue               string
+	previousStructField    string
+	previousPrimitiveField string
+	pendingLines           []Line
 }
 
 func NewLineDecoder(val interface{}, baseLevel int) *LineDecoder {
@@ -136,6 +139,7 @@ func (ld *LineDecoder) Decode(ctx context.Context, lines []Line) error {
 				}
 				ld.resetFieldData("")
 				reflect.ValueOf(ld.val).Elem().FieldByName(field).SetString(line.Value)
+				ld.previousPrimitiveField = field
 			case reflect.Struct:
 				if ld.previousStructField != "" {
 					if err := ld.decodePreviousField(ctx); err != nil {
@@ -158,9 +162,23 @@ func (ld *LineDecoder) Decode(ctx context.Context, lines []Line) error {
 				}
 			default:
 				logger.Warn().Msgf("Unsupported kind of tag %s: %s", line.Tag, typ.Kind())
-				ld.tagValue = ""
+				ld.resetFieldData(line.Tag)
 			}
 		} else if line.Level > ld.baseLevel+1 {
+			if line.Level == ld.baseLevel+2 && ld.previousPrimitiveField != "" {
+				prevValue := reflect.ValueOf(ld.val).Elem().FieldByName(ld.previousPrimitiveField).Interface().(string)
+				newValue := ""
+				switch line.Tag {
+				case "CONT":
+					newValue = prevValue + "\n" + line.Value
+				case "CONC":
+					newValue = prevValue + line.Value
+				}
+				if newValue != "" {
+					reflect.ValueOf(ld.val).Elem().FieldByName(ld.previousPrimitiveField).SetString(newValue)
+				}
+
+			}
 			ld.pendingLines = append(ld.pendingLines, line)
 		}
 	}
