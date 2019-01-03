@@ -1,6 +1,6 @@
 ---
 variables:
-  GO111MODULE: on
+  GO111MODULE: "on"
 
 stages:
   - test
