@@ -27,3 +27,11 @@ func TestReadNumber(t *testing.T) {
 	require.NoError(t, s.Error())
 	require.Equal(t, 456, other)
 }
+
+func TestReadAlphaNum(t *testing.T) {
+	buf := bytes.NewBufferString("1a3\n456")
+	s := NewScanner(buf)
+	res, err := s.ReadAlphaNum()
+	require.NoError(t, err)
+	require.Equal(t, "1a3", res)
+}

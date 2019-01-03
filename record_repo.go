@@ -5,6 +5,7 @@ package gedcom5
 import "context"
 
 type RepositoryRecord struct {
+	id    string
 	lvl   int
 	lines []Line
 }

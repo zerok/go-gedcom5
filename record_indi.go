@@ -10,6 +10,7 @@ import (
 const structTagName = "gedcom5"
 
 type IndividualRecord struct {
+	id    string
 	lvl   int
 	lines []Line
 
@@ -37,10 +38,7 @@ func NewIndividualRecord() Record {
 
 func (r *IndividualRecord) Decode(ctx context.Context) error {
 	ld := NewLineDecoder(r, r.Level())
-	if err := ld.Decode(ctx, r.Lines()); err != nil {
-		return err
-	}
-	return nil
+	return ld.Decode(ctx, r.Lines())
 }
 
 type PersonalName struct {

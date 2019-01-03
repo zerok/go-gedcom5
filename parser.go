@@ -53,6 +53,9 @@ func (fp *FileParser) ParseFile(ctx context.Context) (*File, error) {
 					f.Records = append(f.Records, currTLR)
 				}
 				currTLR = NewRecord(l.Tag)
+				if idable, ok := currTLR.(Identifyable); ok {
+					idable.SetID(l.XRefID)
+				}
 				if lvld, ok := currTLR.(Leveled); ok {
 					lvld.SetLevel(l.Level)
 				}

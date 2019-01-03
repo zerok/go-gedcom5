@@ -2,10 +2,20 @@ package gedcom5
 
 import (
 	"bytes"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestParseFile(t *testing.T) {
+	fp := NewFileParser(NewScanner(bytes.NewBufferString("0 HEAD\n0 @a@ INDI\n0 TRLR\n")))
+	f, err := fp.ParseFile(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, f)
+	require.Len(t, f.Records, 1)
+	require.Equal(t, "@a@", f.Records[0].(Identifyable).ID())
+}
 
 func TestParseLine(t *testing.T) {
 	tests := []struct {

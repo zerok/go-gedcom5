@@ -1,3 +1,4 @@
+//go:generate python3 generators/identifyable.py --outfile record_identifyable.go --package gedcom5 --struct IndividualRecord FamilyRecord
 package gedcom5
 
 import "context"
@@ -6,6 +7,11 @@ type Lined interface {
 	AddLine(Line)
 	Lines() []Line
 	SetLines([]Line)
+}
+
+type Identifyable interface {
+	ID() string
+	SetID(string)
 }
 
 type Decodable interface {

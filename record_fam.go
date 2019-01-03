@@ -5,8 +5,12 @@ package gedcom5
 import "context"
 
 type FamilyRecord struct {
+	id    string
 	lvl   int
 	lines []Line
+
+	Husband string `gedcom5:"HUSB"`
+	Wife    string `gedcom5:"WIFE"`
 }
 
 func NewFamilyRecord() Record {
@@ -16,5 +20,6 @@ func NewFamilyRecord() Record {
 }
 
 func (r *FamilyRecord) Decode(ctx context.Context) error {
-	return nil
+	ld := NewLineDecoder(r, r.Level())
+	return ld.Decode(ctx, r.Lines())
 }

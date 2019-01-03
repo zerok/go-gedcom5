@@ -5,6 +5,7 @@ package gedcom5
 import "context"
 
 type MultimediaRecord struct {
+	id    string
 	lvl   int
 	lines []Line
 }

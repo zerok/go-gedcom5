@@ -33,7 +33,7 @@ func main() {
 		fmt.Printf("Lines decoded: %d\n", len(file.Lines))
 		fmt.Printf("Top-level records: %d\n", len(file.Records))
 		indis := make([]*gedcom5.IndividualRecord, 0, 10)
-		var families int
+		families := make([]*gedcom5.FamilyRecord, 0, 10)
 		var multimedias int
 		var notes int
 		var repos int
@@ -45,7 +45,7 @@ func main() {
 			case *gedcom5.IndividualRecord:
 				indis = append(indis, rec.(*gedcom5.IndividualRecord))
 			case *gedcom5.FamilyRecord:
-				families++
+				families = append(families, rec.(*gedcom5.FamilyRecord))
 			case *gedcom5.MultimediaRecord:
 				multimedias++
 			case *gedcom5.NoteRecord:
@@ -64,7 +64,10 @@ func main() {
 		for _, indi := range indis {
 			printIndividual(indi)
 		}
-		fmt.Printf(" - Families: %d\n", families)
+		fmt.Printf(" - Families: %d\n", len(families))
+		for _, fam := range families {
+			printFamily(fam)
+		}
 		fmt.Printf(" - Multimedia items: %d\n", multimedias)
 		fmt.Printf(" - Notes: %d\n", notes)
 		fmt.Printf(" - Repositories: %d\n", repos)
@@ -90,4 +93,8 @@ func printIndividual(indi *gedcom5.IndividualRecord) {
 		fmt.Printf("%sBirthdate: %s\n", pfx, indi.Birth.Date)
 	}
 	fmt.Printf("%sResidence: %s\n", pfx, strings.Replace(indi.Residence.String(), "\n", "\n          ", -1))
+}
+
+func printFamily(fam *gedcom5.FamilyRecord) {
+	fmt.Printf("    - [%s] %s + %s\n", fam.ID(), fam.Husband, fam.Wife)
 }
