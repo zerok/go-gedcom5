@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/spf13/pflag"
 	gedcom5 "gitlab.com/zerok/go-gedcom5"
@@ -88,4 +89,5 @@ func printIndividual(indi *gedcom5.IndividualRecord) {
 	if indi.Birth.Date != "" {
 		fmt.Printf("%sBirthdate: %s\n", pfx, indi.Birth.Date)
 	}
+	fmt.Printf("%sResidence: %s\n", pfx, strings.Replace(indi.Residence.String(), "\n", "\n          ", -1))
 }

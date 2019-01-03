@@ -19,6 +19,7 @@ type IndividualRecord struct {
 	Note          string         `gedcom5:"NOTE,omitempty"`
 	Occupation    string         `gedcom5:"OCCU,omitempty"`
 	Birth         Birth          `gedcom5:"BIRT,omitempty"`
+	Residence     Event          `gedcom5:"RESI,omitempty"`
 }
 
 func (r *IndividualRecord) String() string {

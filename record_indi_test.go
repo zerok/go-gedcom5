@@ -2,20 +2,24 @@ package gedcom5
 
 import (
 	"context"
+	"os"
 	"testing"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
 func TestIndividualRecord(t *testing.T) {
 	tests := []struct {
 		name      string
+		logLevel  zerolog.Level
 		lines     []Line
 		expectErr bool
 		result    *IndividualRecord
 	}{
 		{
-			name: "with one name",
+			name:     "with one name",
+			logLevel: zerolog.InfoLevel,
 			lines: []Line{
 				Line{Level: 1, Tag: "NAME"},
 				Line{Level: 2, Tag: "SURN", Value: "surname"},
@@ -44,7 +48,42 @@ func TestIndividualRecord(t *testing.T) {
 			},
 		},
 		{
-			name: "with two names",
+			name:     "with name and residence",
+			logLevel: zerolog.InfoLevel,
+			lines: []Line{
+				Line{Level: 1, Tag: "NAME"},
+				Line{Level: 2, Tag: "SURN", Value: "surname"},
+				Line{Level: 1, Tag: "RESI"},
+				Line{Level: 2, Tag: "ADDR", Value: "Line 1"},
+				Line{Level: 3, Tag: "CONT", Value: "Line 2"},
+			},
+			expectErr: false,
+			result: &IndividualRecord{
+				lvl: 0,
+				PersonalNames: []PersonalName{
+					{
+						lvl: 1,
+						lines: []Line{
+							Line{Level: 2, Tag: "SURN", Value: "surname"},
+						},
+						Surname: "surname",
+					},
+				},
+				Residence: Event{
+					lvl: 1,
+					lines: []Line{
+						Line{Level: 2, Tag: "ADDR", Value: "Line 1"},
+						Line{Level: 3, Tag: "CONT", Value: "Line 2"},
+					},
+					Address: Address{
+						value: "Line 1\nLine 2",
+					},
+				},
+			},
+		},
+		{
+			name:     "with two names",
+			logLevel: zerolog.InfoLevel,
 			lines: []Line{
 				Line{Level: 1, Tag: "NAME"},
 				Line{Level: 2, Tag: "SURN", Value: "surname"},
@@ -82,10 +121,12 @@ func TestIndividualRecord(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+			logger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).Level(test.logLevel)
 			r := NewIndividualRecord()
 			r.SetLines(test.lines)
 			test.result.SetLines(test.lines)
-			err := r.Decode(context.Background())
+			err := r.Decode(logger.WithContext(ctx))
 			if test.expectErr {
 				require.Error(t, err)
 			} else {

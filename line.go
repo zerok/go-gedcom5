@@ -46,6 +46,7 @@ type LineDecoder struct {
 	tagValue               string
 	previousStructField    string
 	previousPrimitiveField string
+	previousTag            string
 	pendingLines           []Line
 }
 
@@ -75,7 +76,15 @@ func (ld *LineDecoder) buildMappings() error {
 }
 
 func (ld *LineDecoder) decodePreviousField(ctx context.Context) error {
-	field := ld.tagToField[ld.previousStructField]
+	defer func() {
+		ld.tagValue = ""
+	}()
+	if ld.previousTag == "" {
+		return nil
+	}
+	logger := zerolog.Ctx(ctx)
+	logger.Debug().Msgf("Finalizing %s with value %s", ld.previousTag, ld.tagValue)
+	field := ld.tagToField[ld.previousTag]
 	container := reflect.ValueOf(ld.val).Elem()
 	prop := container.FieldByName(field)
 	var i interface{}
@@ -94,6 +103,9 @@ func (ld *LineDecoder) decodePreviousField(ctx context.Context) error {
 		if v, ok := i.(Valuable); ok {
 			v.SetValue(ld.tagValue)
 		}
+		if _, ok := i.(*string); ok {
+			prop.Set(reflect.ValueOf(ld.tagValue))
+		}
 	}
 	if decodable, ok := i.(Decodable); ok {
 		if err := decodable.Decode(ctx); err != nil {
@@ -104,13 +116,13 @@ func (ld *LineDecoder) decodePreviousField(ctx context.Context) error {
 		rslice := reflect.Append(prop, reflect.Indirect(reflect.ValueOf(i)))
 		prop.Set(rslice)
 	}
+	ld.tagValue = ""
 	return nil
 }
 
 func (ld *LineDecoder) resetFieldData(tag string) {
 	ld.previousStructField = tag
 	ld.pendingLines = make([]Line, 0, 10)
-	ld.tagValue = ""
 }
 
 func (ld *LineDecoder) Decode(ctx context.Context, lines []Line) error {
@@ -120,7 +132,7 @@ func (ld *LineDecoder) Decode(ctx context.Context, lines []Line) error {
 	}
 	for _, line := range lines {
 		if line.Level == ld.baseLevel+1 {
-			field, ok := ld.tagToField[line.Tag]
+			_, ok := ld.tagToField[line.Tag]
 			if !ok {
 				logger.Debug().Msgf("No field found for tag %s", line.Tag)
 				continue
@@ -130,62 +142,40 @@ func (ld *LineDecoder) Decode(ctx context.Context, lines []Line) error {
 				logger.Debug().Msgf("No type found for tag %s", line.Tag)
 				continue
 			}
+			if err := ld.decodePreviousField(ctx); err != nil {
+				return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
+			}
+			if line.Tag != "CONT" && line.Tag != "CONC" {
+				ld.tagValue = line.Value
+			}
+
 			switch typ.Kind() {
 			case reflect.String:
-				if ld.previousStructField != "" {
-					if err := ld.decodePreviousField(ctx); err != nil {
-						return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
-					}
-				}
 				ld.resetFieldData("")
-				reflect.ValueOf(ld.val).Elem().FieldByName(field).SetString(line.Value)
-				ld.previousPrimitiveField = field
 			case reflect.Struct:
-				if ld.previousStructField != "" {
-					if err := ld.decodePreviousField(ctx); err != nil {
-						return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
-					}
-				}
 				ld.resetFieldData(line.Tag)
-				if line.Value != "" {
-					ld.tagValue = line.Value
-				}
 			case reflect.Slice:
-				if ld.previousStructField != "" {
-					if err := ld.decodePreviousField(ctx); err != nil {
-						return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
-					}
-				}
 				ld.resetFieldData(line.Tag)
-				if line.Value != "" {
-					ld.tagValue = line.Value
-				}
 			default:
 				logger.Warn().Msgf("Unsupported kind of tag %s: %s", line.Tag, typ.Kind())
 				ld.resetFieldData(line.Tag)
 			}
-		} else if line.Level > ld.baseLevel+1 {
-			if line.Level == ld.baseLevel+2 && ld.previousPrimitiveField != "" {
-				prevValue := reflect.ValueOf(ld.val).Elem().FieldByName(ld.previousPrimitiveField).Interface().(string)
-				newValue := ""
-				switch line.Tag {
-				case "CONT":
-					newValue = prevValue + "\n" + line.Value
-				case "CONC":
-					newValue = prevValue + line.Value
-				}
-				if newValue != "" {
-					reflect.ValueOf(ld.val).Elem().FieldByName(ld.previousPrimitiveField).SetString(newValue)
-				}
 
+			ld.previousTag = line.Tag
+		} else if line.Level > ld.baseLevel+1 {
+			if line.Level == ld.baseLevel+2 && (line.Tag == "CONT" || line.Tag == "CONC") {
+				switch line.Tag {
+				case "CONC":
+					ld.tagValue += line.Value
+				case "CONT":
+					ld.tagValue += "\n" + line.Value
+				}
 			}
 			ld.pendingLines = append(ld.pendingLines, line)
 		}
 	}
-	if ld.previousStructField != "" {
-		if err := ld.decodePreviousField(ctx); err != nil {
-			return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
-		}
+	if err := ld.decodePreviousField(ctx); err != nil {
+		return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
 	}
 	return nil
 }
