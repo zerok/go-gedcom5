@@ -1,0 +1,11 @@
+---
+stages:
+  - test
+
+run-tests:
+  stage: test
+  image: "golang:1.11.1"
+  script:
+    - "mkdir -p /go/src/gitlab.com/zerok/go-gedcom5"
+    - "cp -R * /go/src/gitlab.com/zerok/go-gedcom5/"
+    - "cd /go/src/gitlab.com/zerok/go-gedcom5 && go test -v ./..."
