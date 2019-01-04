@@ -1,3 +1,4 @@
+//go:generate python3 generators/file_record_lookup.py --outfile file_gen_lookup.go --package gedcom5 --recordtypes Individual Family
 package gedcom5
 
 type Header struct {

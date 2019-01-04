@@ -28,4 +28,24 @@ func TestFamRecord(t *testing.T) {
 	err := NewDecoder(data).Decode(&f)
 	require.NoError(t, err)
 	require.NotNil(t, f)
+
+	fam, ok := f.LookupFamilyByID("@fam@")
+	require.True(t, ok)
+	require.NotNil(t, fam)
+
+	husband, hok := f.LookupIndividualByID(fam.Husband)
+	require.True(t, hok)
+	require.NotNil(t, husband)
+
+	wife, wok := f.LookupIndividualByID(fam.Wife)
+	require.True(t, wok)
+	require.NotNil(t, wife)
+
+	nofam, ok := f.LookupFamilyByID("...")
+	require.False(t, ok)
+	require.Nil(t, nofam)
+
+	noindi, ok := f.LookupIndividualByID("...")
+	require.False(t, ok)
+	require.Nil(t, noindi)
 }
