@@ -4,7 +4,7 @@ bin/gedcom5: bin $(shell find . -name '*.go')
 	cd cmd/gedcom5 && go build -o ../../bin/gedcom5
 
 test:
-	go test -v ./...
+	go test -v -cover ./...
 
 bin:
 	mkdir -p bin

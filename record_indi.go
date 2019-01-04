@@ -1,5 +1,3 @@
-//go:generate python3 generators/leveled.py --structs IndividualRecord PersonalName Birth --package gedcom5 --outfile record_indi_gen_leveled.go
-//go:generate python3 generators/line_based.py --structs IndividualRecord Birth PersonalName --package gedcom5 --outfile record_indi_gen_linebased.go
 package gedcom5
 
 import (

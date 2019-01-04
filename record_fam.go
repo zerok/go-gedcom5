@@ -1,5 +1,3 @@
-//go:generate python3 generators/leveled.py --structs FamilyRecord --package gedcom5 --outfile record_fam_gen_leveled.go
-//go:generate python3 generators/line_based.py --structs FamilyRecord --package gedcom5 --outfile record_fam_gen_linebased.go
 package gedcom5
 
 import "context"

@@ -1,4 +1,6 @@
-//go:generate python3 generators/identifyable.py --outfile record_identifyable.go --package gedcom5 --struct IndividualRecord FamilyRecord
+//go:generate python3 generators/identifyable.py --outfile record_gen_identifyable.go --package gedcom5 --struct IndividualRecord FamilyRecord
+//go:generate python3 generators/line_based.py --outfile record_gen_line_based.go --package gedcom5 --struct PersonalName Birth IndividualRecord FamilyRecord MultimediaRecord RepositoryRecord NoteRecord SourceRecord SubmitterRecord
+//go:generate python3 generators/leveled.py --outfile record_gen_leveled.go --package gedcom5 --struct PersonalName Birth IndividualRecord FamilyRecord MultimediaRecord RepositoryRecord NoteRecord SourceRecord SubmitterRecord
 package gedcom5
 
 import "context"
