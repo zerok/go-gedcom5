@@ -13,7 +13,7 @@ run-tests:
       - "_mods"
   script:
     - "mkdir -p /go/src/gitlab.com/zerok/go-gedcom5"
-    - "mkdir -p /go/src/gitlab.com/zerok/go-gedcom5/_mods"
-    - "mkdir -p /go/pkg/mod"
+    - "mkdir -p _mods"
+    - "rm -rf /go/pkg/mod && mkdir -p /go/pkg && ln -s $PWD/_mods /go/pkg/mod"
     - "cp -R * /go/src/gitlab.com/zerok/go-gedcom5/"
-    - "cd /go/src/gitlab.com/zerok/go-gedcom5 && cp -R _mods/* /go/pkg/mod/ && go mod download && go test -v -cover ./... && cp -R /go/pkg/mod/* _mods/"
+    - "cd /go/src/gitlab.com/zerok/go-gedcom5 && go mod download && go test -v -cover ./..."
