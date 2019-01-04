@@ -10,7 +10,7 @@ run-tests:
   image: "golang:1.11.1"
   cache:
     paths:
-      - "/go/pkg"
+      - "/go/pkg/"
   script:
     - "mkdir -p /go/src/gitlab.com/zerok/go-gedcom5"
     - "cp -R * /go/src/gitlab.com/zerok/go-gedcom5/"
