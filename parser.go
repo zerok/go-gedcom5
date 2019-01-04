@@ -59,6 +59,9 @@ func (fp *FileParser) ParseFile(ctx context.Context) (*File, error) {
 				if lvld, ok := currTLR.(Leveled); ok {
 					lvld.SetLevel(l.Level)
 				}
+				if vbl, ok := currTLR.(Valuable); ok {
+					vbl.SetValue(l.Value)
+				}
 				inHeader = false
 				inTrailer = false
 			}

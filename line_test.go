@@ -7,6 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestLineString(t *testing.T) {
+	l := Line{Level: 1, Tag: "TAG", XRefID: "@a@", Value: "abc"}
+	require.Equal(t, "1 @a@ TAG abc", l.String())
+}
+
 func TestMultilineValueDecoding(t *testing.T) {
 	tests := []struct {
 		name      string

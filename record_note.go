@@ -6,6 +6,7 @@ type NoteRecord struct {
 	id    string
 	lvl   int
 	lines []Line
+	value string
 }
 
 func NewNoteRecord() Record {
@@ -15,5 +16,14 @@ func NewNoteRecord() Record {
 }
 
 func (r *NoteRecord) Decode(ctx context.Context) error {
-	return nil
+	ld := NewLineDecoder(r, r.Level())
+	return ld.Decode(ctx, r.Lines())
+}
+
+func (r *NoteRecord) Value() string {
+	return r.value
+}
+
+func (r *NoteRecord) SetValue(v string) {
+	r.value = v
 }

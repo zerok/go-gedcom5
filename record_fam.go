@@ -7,8 +7,9 @@ type FamilyRecord struct {
 	lvl   int
 	lines []Line
 
-	Husband string `gedcom5:"HUSB"`
-	Wife    string `gedcom5:"WIFE"`
+	Husband  string   `gedcom5:"HUSB"`
+	Wife     string   `gedcom5:"WIFE"`
+	Children []string `gedcom5:"CHIL"`
 }
 
 func NewFamilyRecord() Record {

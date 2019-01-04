@@ -1,8 +1,8 @@
 package gedcom5
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 )
 
 const structTagName = "gedcom5"
@@ -60,9 +60,21 @@ func (pn *PersonalName) Value() string {
 
 func (pn *PersonalName) String() string {
 	if pn.Name != "" {
-		return "<PersonalName: " + pn.Name + ">"
+		return pn.Name
 	}
-	return fmt.Sprintf("<PersonalName: %s %s %s %s %s>", pn.Prefix, pn.Given, pn.SurnamePrefix, pn.Surname, pn.Suffix)
+	empty := true
+	var out bytes.Buffer
+	elems := []string{pn.Prefix, pn.Given, pn.SurnamePrefix, pn.Surname, pn.Suffix}
+	for _, elem := range elems {
+		if elem != "" {
+			if !empty {
+				out.WriteByte(0x20)
+			}
+			out.WriteString(elem)
+			empty = false
+		}
+	}
+	return out.String()
 }
 
 func (pn *PersonalName) Decode(ctx context.Context) error {

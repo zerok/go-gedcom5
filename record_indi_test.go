@@ -9,6 +9,52 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestIndividualRecordString(t *testing.T) {
+	tests := []struct {
+		indi *IndividualRecord
+		out  string
+	}{
+		{
+			indi: &IndividualRecord{},
+			out:  "<no name>",
+		},
+		{
+			indi: &IndividualRecord{
+				PersonalNames: []PersonalName{
+					{
+						Name: "Jane Doe",
+					},
+				},
+			},
+			out: "Jane Doe",
+		},
+	}
+	for _, test := range tests {
+		out := test.indi.String()
+		require.Equal(t, test.out, out)
+	}
+}
+
+func TestPersonalNameString(t *testing.T) {
+	tests := []struct {
+		name PersonalName
+		out  string
+	}{
+		{
+			name: PersonalName{},
+			out:  "",
+		},
+		{
+			name: PersonalName{Given: "Jane", Surname: "Doe"},
+			out:  "Jane Doe",
+		},
+	}
+	for _, test := range tests {
+		out := test.name.String()
+		require.Equal(t, test.out, out)
+	}
+}
+
 func TestIndividualRecord(t *testing.T) {
 	tests := []struct {
 		name      string

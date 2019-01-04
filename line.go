@@ -57,6 +57,9 @@ func NewLineDecoder(val interface{}, baseLevel int) *LineDecoder {
 		tagToField: make(map[string]string),
 		tagToType:  make(map[string]reflect.Type),
 	}
+	if vbl, ok := val.(Valuable); ok {
+		ld.tagValue = vbl.Value()
+	}
 	return ld
 }
 
@@ -104,7 +107,12 @@ func (ld *LineDecoder) decodePreviousField(ctx context.Context) error {
 			v.SetValue(ld.tagValue)
 		}
 		if _, ok := i.(*string); ok {
-			prop.Set(reflect.ValueOf(ld.tagValue))
+			if prop.Kind() == reflect.Slice {
+				rslice := reflect.Append(prop, reflect.Indirect(reflect.ValueOf(ld.tagValue)))
+				prop.Set(rslice)
+			} else {
+				prop.Set(reflect.ValueOf(ld.tagValue))
+			}
 		}
 	}
 	if decodable, ok := i.(Decodable); ok {
@@ -132,6 +140,23 @@ func (ld *LineDecoder) Decode(ctx context.Context, lines []Line) error {
 	}
 	for _, line := range lines {
 		if line.Level == ld.baseLevel+1 {
+			if err := ld.decodePreviousField(ctx); err != nil {
+				return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
+			}
+
+			// We need special treatment for continuations at the root level.
+			// This is used, for instance, for the NOTE record type.
+			if line.Tag == "CONT" || line.Tag == "CONC" {
+				if vbl, ok := ld.val.(Valuable); ok {
+					switch line.Tag {
+					case "CONC":
+						vbl.SetValue(vbl.Value() + line.Value)
+					case "CONT":
+						vbl.SetValue(vbl.Value() + "\n" + line.Value)
+					}
+					continue
+				}
+			}
 			_, ok := ld.tagToField[line.Tag]
 			if !ok {
 				logger.Debug().Msgf("No field found for tag %s", line.Tag)
@@ -142,9 +167,7 @@ func (ld *LineDecoder) Decode(ctx context.Context, lines []Line) error {
 				logger.Debug().Msgf("No type found for tag %s", line.Tag)
 				continue
 			}
-			if err := ld.decodePreviousField(ctx); err != nil {
-				return errors.Wrapf(err, "failed to decode tag %s", ld.previousStructField)
-			}
+
 			if line.Tag != "CONT" && line.Tag != "CONC" {
 				ld.tagValue = line.Value
 			}

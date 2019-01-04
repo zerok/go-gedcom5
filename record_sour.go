@@ -5,6 +5,8 @@ import "context"
 type SourceRecord struct {
 	lvl   int
 	lines []Line
+
+	Title string `gedcom5:"TITL"`
 }
 
 func NewSourceRecord() Record {
@@ -14,5 +16,6 @@ func NewSourceRecord() Record {
 }
 
 func (r *SourceRecord) Decode(ctx context.Context) error {
-	return nil
+	ld := NewLineDecoder(r, r.Level())
+	return ld.Decode(ctx, r.Lines())
 }
