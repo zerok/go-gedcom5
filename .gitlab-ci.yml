@@ -8,7 +8,10 @@ stages:
 run-tests:
   stage: test
   image: "golang:1.11.1"
+  cache:
+    paths:
+      - "/go/pkg"
   script:
     - "mkdir -p /go/src/gitlab.com/zerok/go-gedcom5"
     - "cp -R * /go/src/gitlab.com/zerok/go-gedcom5/"
-    - "cd /go/src/gitlab.com/zerok/go-gedcom5 && go mod download && go test -v ./..."
+    - "cd /go/src/gitlab.com/zerok/go-gedcom5 && go mod download && go test -v -cover ./..."
