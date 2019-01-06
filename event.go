@@ -20,12 +20,12 @@ func (e *Event) Decode(ctx context.Context) error {
 }
 
 type Address struct {
-	value string
+	Val string
 }
 
 func (a *Address) Value() string {
-	return a.value
+	return a.Val
 }
 func (a *Address) SetValue(val string) {
-	a.value = val
+	a.Val = val
 }

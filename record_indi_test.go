@@ -122,7 +122,7 @@ func TestIndividualRecord(t *testing.T) {
 						Line{Level: 3, Tag: "CONT", Value: "Line 2"},
 					},
 					Address: Address{
-						value: "Line 1\nLine 2",
+						Val: "Line 1\nLine 2",
 					},
 				},
 			},
